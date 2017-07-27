@@ -17,7 +17,6 @@
 package org.jetbrains.kotlin.types.expressions;
 
 import com.intellij.psi.tree.IElementType;
-import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns;
@@ -249,7 +248,13 @@ public class ExpressionTypingServices {
 
         ExpressionTypingInternals blockLevelVisitor = new ExpressionTypingVisitorDispatcher.ForBlock(
                 expressionTypingComponents, annotationChecker, scope);
-        ExpressionTypingContext newContext = context.replaceScope(scope).replaceExpectedType(NO_EXPECTED_TYPE);
+        // Use temporary trace to keep effect system cache only for one statement
+        TemporaryBindingTrace traceForStatement = TemporaryBindingTrace.create(
+                context.trace,
+                "trace for resolving single statement",
+                (TraceEntryFilter) (slice, key) -> slice != BindingContext.EXPRESSION_EFFECTS
+        );
+        ExpressionTypingContext newContext = context.replaceScope(scope).replaceExpectedType(NO_EXPECTED_TYPE).replaceBindingTrace(traceForStatement);
 
         KotlinTypeInfo result = TypeInfoFactoryKt.noTypeInfo(context);
         // Jump point data flow info
@@ -290,6 +295,8 @@ public class ExpressionTypingServices {
                 // We take current data flow info if jump there is not possible
             }
             blockLevelVisitor = new ExpressionTypingVisitorDispatcher.ForBlock(expressionTypingComponents, annotationChecker, scope);
+
+            traceForStatement.commit();
         }
         return result.replaceJumpOutPossible(jumpOutPossible).replaceJumpFlowInfo(beforeJumpInfo);
     }
@@ -343,5 +350,4 @@ public class ExpressionTypingServices {
         }
         return result;
     }
-
 }
