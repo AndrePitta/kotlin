@@ -31,15 +31,13 @@ class EffectSchemaImpl(override val clauses: List<ESClause>, val parameters: Lis
 
         // Here we make list of clauses that end with non-sequential effects. They will be added to result as-is
         val irrelevantClauses = arguments.flatMap { schema ->
-            schema.clauses.filter { clause ->
-                clause.effect !is ESReturns && clause.effect !is ESThrows
-            }
+            schema.clauses.filter { !it.effect.isSequential() }
         }
 
         // Here we transform arguments so that they contain only relevant clauses (i.e. those that end with sequential effect)
         // Those clauses should be combined properly using schema's structure
         val filteredArgs = arguments.map { schema ->
-            EffectSchemasFactory.clauses(schema.clauses.filter { it.effect is ESReturns || it.effect is ESThrows }, listOf())
+            EffectSchemasFactory.clauses(schema.clauses.filter { it.effect.isSequential() }, listOf())
         }
         val substs = parameters.zip(filteredArgs).toMap()
 

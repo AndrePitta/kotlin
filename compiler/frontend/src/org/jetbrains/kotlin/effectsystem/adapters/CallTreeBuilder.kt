@@ -47,7 +47,7 @@ class CallTreeBuilder(
         private val functorResolver: FunctorResolver
 ) : KtVisitor<CTNode, Unit>() {
 
-    override fun visitKtElement(element: KtElement, data: Unit?): CTNode = UNKNOWN_CALL
+    override fun visitKtElement(element: KtElement, data: Unit): CTNode = UNKNOWN_CALL
 
     override fun visitConstantExpression(expression: KtConstantExpression, data: Unit): CTNode {
         val bindingContext = bindingContext
@@ -56,19 +56,20 @@ class CallTreeBuilder(
 
         val compileTimeConstant: TypedCompileTimeConstant<*>
                 = bindingContext.get(BindingContext.COMPILE_TIME_VALUE, expression) as? TypedCompileTimeConstant<*> ?: return UNKNOWN_CALL
-        val value: Any? = compileTimeConstant.getValue(type)
+        val value = compileTimeConstant.getValue(type)
         return CTConstant(ValueIdsFactory.idForConstant(value), compileTimeConstant.type, value)
     }
 
 
 
     override fun visitSimpleNameExpression(expression: KtSimpleNameExpression, data: Unit): CTNode {
+        // TODO: make proper resolving
         if (expression.text == "Unit") return CTConstant(UNIT_ID, DefaultBuiltIns.Instance.unitType, Unit)
         return tryCreateVariable(expression)
     }
 
     override fun visitParenthesizedExpression(expression: KtParenthesizedExpression, data: Unit): CTNode =
-            expression.expression?.accept(this, data) ?: UNKNOWN_CALL
+            KtPsiUtil.safeDeparenthesize(expression).accept(this, data)
 
     override fun visitUnaryExpression(expression: KtUnaryExpression, data: Unit): CTCall {
         tryGetCachedCall(expression)?.let { return it }

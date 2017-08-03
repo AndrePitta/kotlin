@@ -41,3 +41,4 @@ internal fun ReceiverParameterDescriptor.extensionReceiverToESVariable(): ESVari
 }
 
 internal fun ConstantValue<*>.toESConstant(): ESConstant? = UtilityParsers.constantsParser.parseConstantValue(this)
+

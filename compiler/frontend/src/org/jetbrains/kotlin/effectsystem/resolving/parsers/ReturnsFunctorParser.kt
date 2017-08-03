@@ -21,6 +21,7 @@ import org.jetbrains.kotlin.effectsystem.factories.EffectSchemasFactory
 import org.jetbrains.kotlin.effectsystem.factories.ValuesFactory
 import org.jetbrains.kotlin.effectsystem.impls.ESVariable
 import org.jetbrains.kotlin.effectsystem.resolving.FunctorParser
+import org.jetbrains.kotlin.effectsystem.resolving.RETURNS_EFFECT
 import org.jetbrains.kotlin.effectsystem.resolving.utility.UtilityParsers
 import org.jetbrains.kotlin.effectsystem.resolving.utility.extensionReceiverToESVariable
 import org.jetbrains.kotlin.effectsystem.resolving.utility.toESConstant
@@ -30,8 +31,6 @@ import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 
 class ReturnsFunctorParser : FunctorParser {
-    private val RETURNS_EFFECT = FqName("kotlin.internal.Returns")
-
     override fun tryParseFunctor(resolvedCall: ResolvedCall<*>): ESFunctor? {
         val condition = UtilityParsers.conditionParser.parseCondition(resolvedCall) ?: return null
 

@@ -18,15 +18,14 @@ package org.jetbrains.kotlin.effectsystem.resolving.utility
 
 import org.jetbrains.kotlin.descriptors.ReceiverParameterDescriptor
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
-import org.jetbrains.kotlin.effectsystem.adapters.ValueIdsFactory
+import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
 import org.jetbrains.kotlin.effectsystem.functors.IsFunctor
-import org.jetbrains.kotlin.effectsystem.impls.*
+import org.jetbrains.kotlin.effectsystem.impls.ESEqual
+import org.jetbrains.kotlin.effectsystem.impls.ESIs
+import org.jetbrains.kotlin.effectsystem.impls.ESVariable
+import org.jetbrains.kotlin.effectsystem.resolving.*
 import org.jetbrains.kotlin.effectsystem.structure.ESBooleanExpression
-import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
-import org.jetbrains.kotlin.resolve.calls.smartcasts.DataFlowValue
-import org.jetbrains.kotlin.resolve.calls.smartcasts.IdentifierInfo
-import org.jetbrains.kotlin.resolve.constants.ConstantValue
 import org.jetbrains.kotlin.resolve.constants.EnumValue
 import org.jetbrains.kotlin.resolve.descriptorUtil.annotationClass
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
@@ -34,16 +33,8 @@ import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 class ConditionParser {
-    private val constantsParser = ConstantsParser()
-
-    private val CONDITION_JOINING_ANNOTATION = FqName("kotlin.internal.JoinConditions")
-
-    private val EQUALS_CONDITION = FqName("kotlin.internal.Equals")
-    private val IS_INSTANCE_CONDITION = FqName("kotlin.internal.IsInstance")
-    private val NOT_CONDITION = FqName("kotlin.internal.Not")
-
     fun parseCondition(resolvedCall: ResolvedCall<*>): ESBooleanExpression? {
-        val joiner = getJoiner(resolvedCall)
+        val joiner = getJoiner(resolvedCall) ?: return null
 
         val primitiveConditions = mutableListOf<ESBooleanExpression>()
         resolvedCall.resultingDescriptor.valueParameters.flatMapTo(primitiveConditions) { getConditionsOnArgument(it) }
@@ -56,28 +47,22 @@ class ConditionParser {
         return joiner.join(primitiveConditions)
     }
 
+    private fun getJoiner(resolvedCall: ResolvedCall<*>): EffectsConditionsJoiners? {
+        val joiningStrategyName = resolvedCall.resultingDescriptor.annotations
+                .findAnnotation(CONDITION_JOINING_ANNOTATION)?.allValueArguments?.values?.single()?.safeAs<EnumValue>()?.value?.name?.identifier
+        return EffectsConditionsJoiners.safeValueOf(joiningStrategyName)
+    }
+
+
     private fun getConditionsOnReceiver(receiverParameter: ReceiverParameterDescriptor): List<ESBooleanExpression> {
         val variable = receiverParameter.extensionReceiverToESVariable()
 
-        val isNegated = receiverParameter.type.annotations.getAllAnnotations().any { it.annotation.annotationClass?.fqNameSafe == NOT_CONDITION }
+        val isNegated = receiverParameter.type.annotations.getAllAnnotations().any {
+            it.annotation.annotationClass?.fqNameEquals(NOT_CONDITION) ?: false
+        }
 
         return receiverParameter.type.annotations.getAllAnnotations().mapNotNull {
-            when (it.annotation.annotationClass?.fqNameSafe) {
-                EQUALS_CONDITION -> ESEqual(variable, it.annotation.allValueArguments.values.single().toESConstant() ?: return@mapNotNull null, isNegated)
-                IS_INSTANCE_CONDITION -> ESIs(variable, IsFunctor(it.annotation.allValueArguments.values.single().value as KotlinType, isNegated))
-                else -> null
-            }
-        }
-    }
-
-    private fun getJoiner(resolvedCall: ResolvedCall<*>): Joiner {
-        val joiningStrategyName = resolvedCall.resultingDescriptor.annotations
-                .findAnnotation(CONDITION_JOINING_ANNOTATION)?.allValueArguments?.values?.single()?.safeAs<EnumValue>()?.value?.name?.identifier
-        return when (joiningStrategyName) {
-            "ANY" -> Joiner.ANY
-            "NONE" -> Joiner.NONE
-            "ALL" -> Joiner.ALL
-            else -> Joiner.ALL
+            it.annotation.parseCondition(variable, isNegated)
         }
     }
 
@@ -86,33 +71,18 @@ class ConditionParser {
 
         val isNegated = parameterDescriptor.annotations.findAnnotation(NOT_CONDITION) != null
 
-        return parameterDescriptor.annotations.mapNotNull {
-            when (it.annotationClass?.fqNameSafe) {
-                EQUALS_CONDITION -> ESEqual(parameterVariable, it.allValueArguments.values.single().toESConstant() ?: return@mapNotNull null, isNegated)
-                IS_INSTANCE_CONDITION -> ESIs(parameterVariable, IsFunctor(it.allValueArguments.values.single().value as KotlinType, isNegated))
-                else -> null
-            }
+        return parameterDescriptor.annotations.mapNotNull { it.parseCondition(parameterVariable, isNegated) }
+    }
+
+    private fun AnnotationDescriptor.parseCondition(subjectVariable: ESVariable, isNegated: Boolean): ESBooleanExpression? {
+        return when {
+            this.annotationClass.fqNameEquals(EQUALS_CONDITION) ->
+                ESEqual(subjectVariable, allValueArguments.values.single().toESConstant() ?: return null, isNegated)
+
+            this.annotationClass.fqNameEquals(IS_INSTANCE_CONDITION) ->
+                ESIs(subjectVariable, IsFunctor(allValueArguments.values.single().value as KotlinType, isNegated))
+
+            else -> null
         }
     }
-
-    private enum class Joiner {
-        ALL {
-            override fun join(conditions: List<ESBooleanExpression>): ESBooleanExpression =
-                    conditions.reduce { acc, expr -> acc.and(expr) }
-        },
-
-        NONE {
-            override fun join(conditions: List<ESBooleanExpression>): ESBooleanExpression =
-                    conditions.map { it.not() }.reduce { acc, expr -> acc.and(expr) }
-        },
-
-        ANY {
-            override fun join(conditions: List<ESBooleanExpression>): ESBooleanExpression =
-                    conditions.reduce { acc, expr -> acc.or(expr) }
-        };
-
-        abstract fun join(conditions: List<ESBooleanExpression>): ESBooleanExpression
-    }
-
-    private fun ConstantValue<*>.toESConstant(): ESConstant? = constantsParser.parseConstantValue(this)
 }

@@ -30,8 +30,9 @@ import org.jetbrains.kotlin.types.typeUtil.isSubtypeOf
 class Reducer : ESExpressionVisitor<ESExpression?> {
     fun reduceSchema(schema: EffectSchema): EffectSchema =
             EffectSchemasFactory.clauses(
-                    schema.clauses.mapNotNull { reduceClause(it) }
-            , listOf())
+                    schema.clauses.mapNotNull { reduceClause(it) },
+                    listOf()
+            )
 
     fun reduceClause(clause: org.jetbrains.kotlin.effectsystem.structure.ESClause): org.jetbrains.kotlin.effectsystem.structure.ESClause? {
         val reducedPremise = clause.condition.accept(this) as ESBooleanExpression

@@ -137,7 +137,7 @@ class CallCompleter(
     ) {
         if (resolvedCall == null || resolvedCall.isCompleted || resolvedCall.constraintSystem == null) {
             completeArguments(context, results)
-            resolvedCall?.updateResultDFIFromEffectSystem(context.trace)
+            resolvedCall?.updateResultDataFlowInfoUsingEffects(context.trace)
             resolvedCall?.markCallAsCompleted()
             return
         }
@@ -147,7 +147,7 @@ class CallCompleter(
         completeArguments(context, results)
 
         resolvedCall.updateResolutionStatusFromConstraintSystem(context, tracing)
-        resolvedCall.updateResultDFIFromEffectSystem(context.trace)
+        resolvedCall.updateResultDataFlowInfoUsingEffects(context.trace)
         resolvedCall.markCallAsCompleted()
     }
 
@@ -402,8 +402,8 @@ class CallCompleter(
         return expressionType != null && TypeUtils.isNullableType(expressionType)
     }
 
-    private fun MutableResolvedCall<*>.updateResultDFIFromEffectSystem(bindingTrace: BindingTrace) {
-        val resultDFIfromES = effectSystem.getResultDFI(
+    private fun MutableResolvedCall<*>.updateResultDataFlowInfoUsingEffects(bindingTrace: BindingTrace) {
+        val resultDFIfromES = effectSystem.getResultDataFlowInfo(
                 this, bindingTrace, languageVersionSettings,
                 DescriptorUtils.getContainingModule(this.resultingDescriptor?.containingDeclaration ?: return)
         )

@@ -19,16 +19,15 @@ package org.jetbrains.kotlin.effectsystem.resolving.parsers
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
 import org.jetbrains.kotlin.effectsystem.effects.ESCalls
 import org.jetbrains.kotlin.effectsystem.functors.InPlaceCallFunctor
+import org.jetbrains.kotlin.effectsystem.resolving.CALLS_EFFECT
 import org.jetbrains.kotlin.effectsystem.resolving.FunctorParser
 import org.jetbrains.kotlin.effectsystem.structure.ESFunctor
-import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 import org.jetbrains.kotlin.resolve.constants.ConstantValue
 import org.jetbrains.kotlin.resolve.constants.EnumValue
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 class InPlaceCallFunctorParser : FunctorParser {
-    private val CALLS_EFFECT = FqName("kotlin.internal.CalledInPlace")
 
     override fun tryParseFunctor(resolvedCall: ResolvedCall<*>): ESFunctor? {
         val argsEffects = mutableListOf<AnnotationDescriptor>()

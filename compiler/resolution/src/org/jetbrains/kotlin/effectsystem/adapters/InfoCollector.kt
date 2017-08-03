@@ -48,11 +48,11 @@ class InfoCollector(private val observedEffect: ESEffect) : ESExpressionVisitor<
     }
 
     override fun visitIs(isOperator: ESIs): MutableContextInfo = with(isOperator) {
-        if (isNegated.xor(isInverted)) MutableContextInfo.EMPTY.notSubtype(left, type) else MutableContextInfo.EMPTY.subtype(left, type)
+        if (isNegated != isInverted) MutableContextInfo.EMPTY.notSubtype(left, type) else MutableContextInfo.EMPTY.subtype(left, type)
     }
 
     override fun visitEqual(equal: ESEqual): MutableContextInfo = with(equal) {
-        if (isNegated.xor(isInverted)) MutableContextInfo.EMPTY.notEqual(left, right) else MutableContextInfo.EMPTY.equal(left, right)
+        if (isNegated != isInverted) MutableContextInfo.EMPTY.notEqual(left, right) else MutableContextInfo.EMPTY.equal(left, right)
     }
 
     override fun visitAnd(and: ESAnd): MutableContextInfo {

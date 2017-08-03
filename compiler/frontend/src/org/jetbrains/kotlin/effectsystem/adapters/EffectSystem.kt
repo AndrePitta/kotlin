@@ -21,7 +21,6 @@ import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.effectsystem.structure.ESEffect
 import org.jetbrains.kotlin.effectsystem.structure.EffectSchema
 import org.jetbrains.kotlin.effectsystem.effects.ESReturns
-import org.jetbrains.kotlin.effectsystem.effects.ESThrows
 import org.jetbrains.kotlin.effectsystem.factories.ValuesFactory
 import org.jetbrains.kotlin.effectsystem.factories.lift
 import org.jetbrains.kotlin.effectsystem.resolving.FunctorResolver
@@ -38,7 +37,7 @@ import org.jetbrains.kotlin.resolve.calls.smartcasts.DataFlowInfo
 class EffectSystem {
     private val functorResolver = FunctorResolver()
 
-    fun getResultDFI(
+    fun getResultDataFlowInfo(
             resolvedCall: ResolvedCall<*>,
             bindingTrace: BindingTrace,
             languageVersionSettings: LanguageVersionSettings,
@@ -47,8 +46,8 @@ class EffectSystem {
         val callExpression = resolvedCall.call.callElement as? KtCallExpression ?: return DataFlowInfo.EMPTY
         // Prevent launch of effect system machinery on pointless cases (constants/enums/constructors/etc.)
         if (callExpression is KtDeclaration) return DataFlowInfo.EMPTY
-        return getDFIWhen(ESReturns(ValuesFactory.UNKNOWN_CONSTANT), callExpression,
-                          bindingTrace, languageVersionSettings, moduleDescriptor)
+        return getDataFlowInfoWhen(ESReturns(ValuesFactory.UNKNOWN_CONSTANT), callExpression,
+                                   bindingTrace, languageVersionSettings, moduleDescriptor)
     }
 
     fun getConditionalInfoForThenBranch(
@@ -58,7 +57,7 @@ class EffectSystem {
             moduleDescriptor: ModuleDescriptor
     ): DataFlowInfo {
         if (condition == null) return DataFlowInfo.EMPTY
-        return getDFIWhen(ESReturns(true.lift()), condition, bindingTrace, languageVersionSettings, moduleDescriptor)
+        return getDataFlowInfoWhen(ESReturns(true.lift()), condition, bindingTrace, languageVersionSettings, moduleDescriptor)
     }
 
     fun getConditionalInfoForElseBranch(
@@ -68,10 +67,10 @@ class EffectSystem {
             moduleDescriptor: ModuleDescriptor
     ): DataFlowInfo {
         if (condition == null) return DataFlowInfo.EMPTY
-        return getDFIWhen(ESReturns(false.lift()), condition, bindingTrace, languageVersionSettings, moduleDescriptor)
+        return getDataFlowInfoWhen(ESReturns(false.lift()), condition, bindingTrace, languageVersionSettings, moduleDescriptor)
     }
 
-    private fun getDFIWhen(
+    private fun getDataFlowInfoWhen(
             observedEffect: ESEffect,
             expression: KtExpression,
             bindingTrace: BindingTrace,

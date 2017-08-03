@@ -39,59 +39,44 @@ class MutableContextInfo private constructor(
         )
     }
 
-    fun subtype(value: ESValue, type: KotlinType): MutableContextInfo {
-        subtypes.initAndAdd(value, type)
-        return this
-    }
+    fun subtype(value: ESValue, type: KotlinType) = apply { subtypes.initAndAdd(value, type) }
 
-    fun notSubtype(value: ESValue, type: KotlinType): MutableContextInfo {
-        notSubtypes.initAndAdd(value, type)
-        return this
-    }
+    fun notSubtype(value: ESValue, type: KotlinType) = apply { notSubtypes.initAndAdd(value, type) }
 
-    fun equal(left: ESValue, right: ESValue): MutableContextInfo {
+    fun equal(left: ESValue, right: ESValue) = apply {
         equalValues.initAndAdd(left, right)
         equalValues.initAndAdd(right, left)
-        return this
     }
 
-    fun notEqual(left: ESValue, right: ESValue): MutableContextInfo {
+    fun notEqual(left: ESValue, right: ESValue) = apply {
         notEqualValues.initAndAdd(left, right)
         notEqualValues.initAndAdd(right, left)
-        return this
     }
 
-    fun fire(effect: ESEffect): MutableContextInfo {
-        firedEffects += effect
-        return this
-    }
+    fun fire(effect: ESEffect) = apply { firedEffects += effect }
 
     fun deny(effect: ESEffect): MutableContextInfo {
         deniedEffects += effect
         return this
     }
 
-    fun or(other: MutableContextInfo): MutableContextInfo {
-        return MutableContextInfo(
-            firedEffects = firedEffects.intersect(other.firedEffects).toMutableList(),
-            deniedEffects = deniedEffects.intersect(other.deniedEffects).toMutableList(),
-            subtypes = subtypes.intersect(other.subtypes),
-            notSubtypes = notSubtypes.intersect(other.notSubtypes),
-            equalValues = equalValues.intersect(other.equalValues),
-            notEqualValues = notEqualValues.intersect(other.notEqualValues)
-        )
-    }
+    fun or(other: MutableContextInfo): MutableContextInfo = MutableContextInfo(
+        firedEffects = firedEffects.intersect(other.firedEffects).toMutableList(),
+        deniedEffects = deniedEffects.intersect(other.deniedEffects).toMutableList(),
+        subtypes = subtypes.intersect(other.subtypes),
+        notSubtypes = notSubtypes.intersect(other.notSubtypes),
+        equalValues = equalValues.intersect(other.equalValues),
+        notEqualValues = notEqualValues.intersect(other.notEqualValues)
+    )
 
-    fun and(other: MutableContextInfo): MutableContextInfo {
-        return MutableContextInfo(
-            firedEffects = firedEffects.union(other.firedEffects).toMutableList(),
-            deniedEffects = deniedEffects.union(other.deniedEffects).toMutableList(),
-            subtypes = subtypes.union(other.subtypes),
-            notSubtypes = notSubtypes.union(other.notSubtypes),
-            equalValues = equalValues.union(other.equalValues),
-            notEqualValues = notEqualValues.union(other.notEqualValues)
-        )
-    }
+    fun and(other: MutableContextInfo): MutableContextInfo = MutableContextInfo(
+        firedEffects = firedEffects.union(other.firedEffects).toMutableList(),
+        deniedEffects = deniedEffects.union(other.deniedEffects).toMutableList(),
+        subtypes = subtypes.union(other.subtypes),
+        notSubtypes = notSubtypes.union(other.notSubtypes),
+        equalValues = equalValues.union(other.equalValues),
+        notEqualValues = notEqualValues.union(other.notEqualValues)
+    )
 
     private fun <D> MutableMap<ESValue, MutableSet<D>>.intersect(that: MutableMap<ESValue, MutableSet<D>>): MutableMap<ESValue, MutableSet<D>> {
         val result = mutableMapOf<ESValue, MutableSet<D>>()
@@ -123,43 +108,34 @@ class MutableContextInfo private constructor(
         }
     }
 
-    fun print(): String {
-        return with(StringBuffer()) {
-            val info = this@MutableContextInfo
+    fun print(): String = buildString {
+        val info = this@MutableContextInfo
 
-            append("Fired effects: ")
-            append(info.firedEffects.joinToString(separator = ", " ))
-            appendln("")
-
-            append("Denied effects: ")
-            append(info.deniedEffects.joinToString(separator = ", " ))
-            appendln()
-
-            subtypes.entries.filter { it.value.isNotEmpty() }.forEach { (key, value) ->
+        fun <D> Map<ESValue, Set<D>>.printMapEntriesWithSeparator(separator: String) {
+            this.entries.filter { it.value.isNotEmpty() }.forEach { (key, value) ->
                 append(key.toString())
-                append(" is ")
+                append(" $separator ")
                 appendln(value.toString())
             }
-
-            notSubtypes.entries.filter { it.value.isNotEmpty() }.forEach { (key, value) ->
-                append(key.toString())
-                append(" !is ")
-                appendln(value.toString())
-            }
-
-            equalValues.entries.filter { it.value.isNotEmpty() }.forEach { (key, value) ->
-                append(key.toString())
-                append(" == ")
-                appendln(value.toString())
-            }
-
-            notEqualValues.entries.filter { it.value.isNotEmpty() }.forEach { (key, value) ->
-                append(key.toString())
-                append(" != ")
-                appendln(value.toString())
-            }
-
-            this.toString()
         }
+
+        append("Fired effects: ")
+        append(info.firedEffects.joinToString(separator = ", " ))
+        appendln("")
+
+        append("Denied effects: ")
+        append(info.deniedEffects.joinToString(separator = ", " ))
+        appendln()
+
+        subtypes.printMapEntriesWithSeparator("is")
+
+        notSubtypes.printMapEntriesWithSeparator("!is")
+
+        equalValues.printMapEntriesWithSeparator("==")
+
+        notEqualValues.printMapEntriesWithSeparator("!=")
+
+        this.toString()
     }
+
 }

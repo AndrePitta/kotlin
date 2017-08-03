@@ -19,18 +19,19 @@ package org.jetbrains.kotlin.effectsystem.resolving.utility
 import org.jetbrains.kotlin.effectsystem.factories.ValuesFactory
 import org.jetbrains.kotlin.effectsystem.factories.lift
 import org.jetbrains.kotlin.effectsystem.impls.ESConstant
+import org.jetbrains.kotlin.effectsystem.resolving.EffectsConstantValues
 import org.jetbrains.kotlin.resolve.constants.ConstantValue
 import org.jetbrains.kotlin.resolve.constants.EnumValue
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 class ConstantsParser {
-    fun parseConstantValue(constantValue: ConstantValue<*>?): ESConstant? = when (constantValue.safeAs<EnumValue>()?.value?.name?.identifier) {
-        "TRUE" -> true.lift()
-        "FALSE" -> false.lift()
-        "NULL" -> null.lift()
-        "NOT_NULL" -> ValuesFactory.NOT_NULL_CONSTANT
-        "UNKNOWN" -> ValuesFactory.UNKNOWN_CONSTANT
-        null -> null
-        else -> throw IllegalStateException("Unknown annotation-constant: $this")
-    }
+    fun parseConstantValue(constantValue: ConstantValue<*>?): ESConstant? =
+            when(EffectsConstantValues.safeValueOf(constantValue.safeAs<EnumValue>()?.value?.name?.identifier)) {
+                EffectsConstantValues.TRUE -> true.lift()
+                EffectsConstantValues.FALSE -> false.lift()
+                EffectsConstantValues.NULL -> null.lift()
+                EffectsConstantValues.NOT_NULL -> ValuesFactory.NOT_NULL_CONSTANT
+                EffectsConstantValues.UNKNOWN -> ValuesFactory.UNKNOWN_CONSTANT
+                null -> null
+            }
 }

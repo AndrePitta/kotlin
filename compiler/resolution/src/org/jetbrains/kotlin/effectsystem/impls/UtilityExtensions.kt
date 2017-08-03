@@ -18,13 +18,12 @@ package org.jetbrains.kotlin.effectsystem.impls
 
 import org.jetbrains.kotlin.effectsystem.effects.ESReturns
 import org.jetbrains.kotlin.effectsystem.effects.ESThrows
+import org.jetbrains.kotlin.effectsystem.factories.lift
 import org.jetbrains.kotlin.effectsystem.functors.AndFunctor
 import org.jetbrains.kotlin.effectsystem.functors.NotFunctor
 import org.jetbrains.kotlin.effectsystem.functors.OrFunctor
-import org.jetbrains.kotlin.effectsystem.structure.ESClause
-import org.jetbrains.kotlin.effectsystem.structure.ESEffect
 import org.jetbrains.kotlin.effectsystem.structure.ESBooleanExpression
-import org.jetbrains.kotlin.effectsystem.factories.lift
+import org.jetbrains.kotlin.effectsystem.structure.ESEffect
 
 // Premise extensions
 fun ESBooleanExpression.and(otherExpression: ESBooleanExpression): ESBooleanExpression = ESAnd(this, otherExpression, AndFunctor())
@@ -34,3 +33,5 @@ fun ESBooleanExpression.or(otherExpression: ESBooleanExpression): ESBooleanExpre
 fun ESBooleanExpression.not(): ESBooleanExpression = ESNot(this, NotFunctor())
 
 fun ESBooleanConstant.not(): ESBooleanConstant = if (this.value) false.lift() else true.lift()
+
+fun ESEffect.isSequential(): Boolean = this is ESReturns || this is ESThrows
