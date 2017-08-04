@@ -41,8 +41,8 @@ class ReturnsFunctorParser : FunctorParser {
 
     private fun getParameters(resolvedCall: ResolvedCall<*>): List<ESVariable> {
         val allParameters = mutableListOf<ESVariable>()
-        resolvedCall.resultingDescriptor.valueParameters.mapTo(allParameters) { it.toESVariable() }
         resolvedCall.resultingDescriptor.extensionReceiverParameter?.extensionReceiverToESVariable()?.let { allParameters += it }
+        resolvedCall.resultingDescriptor.valueParameters.mapTo(allParameters) { it.toESVariable() }
         return allParameters
     }
 }

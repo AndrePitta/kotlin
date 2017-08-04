@@ -21,6 +21,7 @@ import org.jetbrains.kotlin.effectsystem.effects.ESCalls
 import org.jetbrains.kotlin.effectsystem.functors.InPlaceCallFunctor
 import org.jetbrains.kotlin.effectsystem.resolving.CALLS_EFFECT
 import org.jetbrains.kotlin.effectsystem.resolving.FunctorParser
+import org.jetbrains.kotlin.effectsystem.resolving.utility.extensionReceiverToESVariable
 import org.jetbrains.kotlin.effectsystem.structure.ESFunctor
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 import org.jetbrains.kotlin.resolve.constants.ConstantValue
@@ -33,7 +34,10 @@ class InPlaceCallFunctorParser : FunctorParser {
         val argsEffects = mutableListOf<AnnotationDescriptor>()
         val isRelevantArg = mutableListOf<Boolean>()
 
-        resolvedCall.resultingDescriptor.valueParameters.forEach { param ->
+        val allParametersIncludingReceiver =
+                listOf(resolvedCall.resultingDescriptor.extensionReceiverParameter).filterNotNull() + resolvedCall.resultingDescriptor.valueParameters
+
+        allParametersIncludingReceiver.forEach { param ->
             val callsEffect = param.annotations.findAnnotation(CALLS_EFFECT)
             if (callsEffect != null) {
                 argsEffects.add(callsEffect)

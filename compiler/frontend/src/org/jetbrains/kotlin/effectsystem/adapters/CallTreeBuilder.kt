@@ -34,6 +34,7 @@ import org.jetbrains.kotlin.resolve.calls.smartcasts.DataFlowValue
 import org.jetbrains.kotlin.resolve.calls.smartcasts.DataFlowValueFactory
 import org.jetbrains.kotlin.resolve.constants.TypedCompileTimeConstant
 import org.jetbrains.kotlin.types.KotlinType
+import org.jetbrains.kotlin.utils.addToStdlib.cast
 import org.jetbrains.kotlin.utils.ifEmpty
 
 /**
@@ -79,7 +80,7 @@ class CallTreeBuilder(
         }
     }
 
-    override fun visitDotQualifiedExpression(expression: KtDotQualifiedExpression, data: Unit): CTNode {
+    override fun visitDotQualifiedExpression(expression: KtDotQualifiedExpression, data: Unit): CTCall {
         tryGetCachedCall(expression)?.let { return it }
 
         val receiver = expression.receiverExpression.accept(this, data)
@@ -125,6 +126,11 @@ class CallTreeBuilder(
     }
 
     override fun visitCallExpression(expression: KtCallExpression, data: Unit): CTCall {
+        if (expression.parent is KtDotQualifiedExpression && expression.parent.cast<KtDotQualifiedExpression>().receiverExpression != expression) {
+            // Don't analyze call alone without receiver
+            return visitDotQualifiedExpression(expression.parent as KtDotQualifiedExpression, data)
+        }
+
         tryGetCachedCall(expression)?.let { return it }
 
         val resolvedCall = expression.getResolvedCall(bindingContext) ?: return UNKNOWN_CALL
@@ -135,7 +141,8 @@ class CallTreeBuilder(
         } ?: return UNKNOWN_CALL
 
 
-        return CTCall(functor, argNodes)
+        val receiverValue = if (resolvedCall.extensionReceiver != null) listOf(UNKNOWN_CALL) else emptyList()
+        return CTCall(functor, receiverValue + argNodes)
     }
 
     override fun visitReferenceExpression(expression: KtReferenceExpression, data: Unit?): CTNode = tryCreateVariable(expression)
