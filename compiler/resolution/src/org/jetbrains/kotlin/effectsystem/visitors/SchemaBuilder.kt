@@ -52,5 +52,5 @@ class SchemaBuilder : CallTreeVisitor<EffectSchema?> {
     }
 
     override fun visitLambda(ctLambda: CTLambda): EffectSchema =
-            pureSchema(ESLambda(ctLambda.id, ctLambda.type, ctLambda.lambdaFunctor))
+            pureSchema(ESLambda(ctLambda.id, ctLambda.type))
 }

@@ -18,7 +18,6 @@ package org.jetbrains.kotlin.effectsystem.impls
 
 import org.jetbrains.kotlin.builtins.DefaultBuiltIns
 import org.jetbrains.kotlin.effectsystem.structure.ESValueID
-import org.jetbrains.kotlin.effectsystem.structure.ESFunctor
 import org.jetbrains.kotlin.effectsystem.structure.ESBooleanValue
 import org.jetbrains.kotlin.effectsystem.structure.ESValue
 import org.jetbrains.kotlin.effectsystem.structure.ESExpressionVisitor
@@ -46,7 +45,7 @@ class ESBooleanVariable(id: ESValueID) : ESVariable(id, DefaultBuiltIns.Instance
     override fun <T> accept(visitor: ESExpressionVisitor<T>): T = visitor.visitBooleanVariable(this)
 }
 
-class ESLambda(id: ESValueID, type: KotlinType, functor: ESFunctor?) : ESVariable(id, type) {
+class ESLambda(id: ESValueID, type: KotlinType) : ESVariable(id, type) {
     override fun <T> accept(visitor: ESExpressionVisitor<T>): T = visitor.visitLambda(this)
 }
 

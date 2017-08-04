@@ -18,8 +18,8 @@ package org.jetbrains.kotlin.effectsystem.functors
 
 import org.jetbrains.kotlin.effectsystem.effects.ESReturns
 import org.jetbrains.kotlin.effectsystem.factories.createClause
+import org.jetbrains.kotlin.effectsystem.factories.negated
 import org.jetbrains.kotlin.effectsystem.impls.ESBooleanConstant
-import org.jetbrains.kotlin.effectsystem.impls.not
 import org.jetbrains.kotlin.effectsystem.structure.ESClause
 import org.jetbrains.kotlin.utils.addToStdlib.cast
 
@@ -32,6 +32,6 @@ class NotFunctor : AbstractSequentialUnaryFunctor() {
         // like "foo(bar) && 1"
         val booleanValue = outcome.cast<ESReturns>().value as? ESBooleanConstant ?: return@mapNotNull null
 
-        return@mapNotNull createClause(it.condition, ESReturns(booleanValue.not()))
+        return@mapNotNull createClause(it.condition, ESReturns(booleanValue.negated()))
     }
 }

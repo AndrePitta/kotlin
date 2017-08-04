@@ -21,24 +21,14 @@ import org.jetbrains.kotlin.effectsystem.structure.EffectSchema
 import org.jetbrains.kotlin.effectsystem.structure.ESExpressionVisitor
 
 class Printer : ESExpressionVisitor<Unit> {
-    private var indentation = ""
-    private val indentationStep = "  "
-    private val builder = StringBuffer()
-
-    private fun indented(block: () -> Unit) {
-        indentation += indentationStep
-        block()
-        indentation.removePrefix(indentationStep)
-    }
+    private val builder = StringBuilder()
 
     private fun print(string: String) {
         builder.append(string)
     }
 
-    private fun line(block: () -> Unit) {
-        builder.append(indentation)
+    private inline fun line(block: () -> Unit) {
         block()
-        builder.appendln()
     }
 
     fun print(schema: EffectSchema) {

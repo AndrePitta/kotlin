@@ -24,7 +24,7 @@ import org.jetbrains.kotlin.types.KotlinType
 
 fun Boolean.lift(): ESBooleanConstant = if (this) TRUE_CONSTANT else FALSE_CONSTANT
 
-fun ESBooleanConstant.negate(): ESBooleanConstant = if (this.value) FALSE_CONSTANT else TRUE_CONSTANT
+fun ESBooleanConstant.negated(): ESBooleanConstant = if (this.value) FALSE_CONSTANT else TRUE_CONSTANT
 
 fun Nothing?.lift(): ESConstant = NULL_CONSTANT
 

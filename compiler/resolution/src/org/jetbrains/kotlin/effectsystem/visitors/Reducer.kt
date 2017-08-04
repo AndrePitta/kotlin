@@ -18,6 +18,7 @@ package org.jetbrains.kotlin.effectsystem.visitors
 
 import org.jetbrains.kotlin.effectsystem.factories.boundSchemaFromClauses
 import org.jetbrains.kotlin.effectsystem.factories.lift
+import org.jetbrains.kotlin.effectsystem.factories.negated
 import org.jetbrains.kotlin.effectsystem.impls.*
 import org.jetbrains.kotlin.effectsystem.structure.*
 import org.jetbrains.kotlin.types.typeUtil.isSubtypeOf
@@ -34,9 +35,7 @@ class Reducer : ESExpressionVisitor<ESExpression?> {
         val reducedPremise = clause.condition.accept(this) as ESBooleanExpression
 
         // Filter never executed premises
-        if (reducedPremise is ESBooleanConstant && !reducedPremise.value) return null
-
-        return ESClause(reducedPremise, clause.effect)
+        return if (reducedPremise is ESBooleanConstant && !reducedPremise.value) null else ESClause(reducedPremise, clause.effect)
     }
 
     override fun visitIs(isOperator: ESIs): ESBooleanExpression {
@@ -67,29 +66,33 @@ class Reducer : ESExpressionVisitor<ESExpression?> {
         val reducedLeft = and.left.accept(this) as ESBooleanExpression
         val reducedRight = and.right.accept(this) as ESBooleanExpression
 
-        if (reducedLeft == false.lift() || reducedRight == false.lift()) return false.lift()
-        if (reducedLeft == true.lift()) return reducedRight
-        if (reducedRight == true.lift()) return reducedLeft
-
-        return ESAnd(reducedLeft, reducedRight, and.functor)
+        return when {
+            reducedLeft == false.lift() || reducedRight == false.lift() -> false.lift()
+            reducedLeft == true.lift() -> reducedRight
+            reducedRight == true.lift() -> reducedLeft
+            else -> ESAnd(reducedLeft, reducedRight, and.functor)
+        }
     }
 
     override fun visitOr(or: ESOr): ESBooleanExpression {
         val reducedLeft = or.left.accept(this) as ESBooleanExpression
         val reducedRight = or.right.accept(this) as ESBooleanExpression
 
-        if (reducedLeft == true.lift() || reducedRight == true.lift()) return true.lift()
-        if (reducedLeft == false.lift()) return reducedRight
-        if (reducedRight == false.lift()) return reducedLeft
-
-        return ESOr(reducedLeft, reducedRight, or.functor)
+        return when {
+            reducedLeft == true.lift() || reducedRight == true.lift() -> true.lift()
+            reducedLeft == false.lift() -> reducedRight
+            reducedRight == false.lift() -> reducedLeft
+            else -> ESOr(reducedLeft, reducedRight, or.functor)
+        }
     }
 
     override fun visitNot(not: ESNot): ESBooleanExpression {
         val reducedArg = not.arg.accept(this) as ESBooleanExpression
-        if (reducedArg == false.lift()) return true.lift()
-        if (reducedArg == true.lift()) return false.lift()
-        return reducedArg
+
+        return when (reducedArg) {
+            is ESBooleanConstant -> reducedArg.negated()
+            else -> reducedArg
+        }
     }
 
     override fun visitVariable(esVariable: ESVariable): ESVariable = esVariable

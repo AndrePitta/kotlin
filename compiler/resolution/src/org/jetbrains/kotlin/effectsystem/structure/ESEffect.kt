@@ -19,9 +19,9 @@ package org.jetbrains.kotlin.effectsystem.structure
 interface ESEffect {
     /**
      * Returns:
-     *  - true, when presence of `this`-effect necessary implies presence of `that`-effect
-     *  - false, when presence of `this`-effect necessary implies absence of `that`-effect
-     *  - null, when presence of `this`-effect doesn't implies neither presence nor absence of `that`-effect
+     *  - true, when presence of `this`-effect necessary implies presence of `other`-effect
+     *  - false, when presence of `this`-effect necessary implies absence of `other`-effect
+     *  - null, when presence of `this`-effect doesn't implies neither presence nor absence of `other`-effect
      */
     fun isImplies(other: ESEffect): Boolean?
 }

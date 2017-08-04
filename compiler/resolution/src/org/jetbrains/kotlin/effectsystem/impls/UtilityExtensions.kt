@@ -32,6 +32,4 @@ fun ESBooleanExpression.or(otherExpression: ESBooleanExpression): ESBooleanExpre
 
 fun ESBooleanExpression.not(): ESBooleanExpression = ESNot(this, NotFunctor())
 
-fun ESBooleanConstant.not(): ESBooleanConstant = if (this.value) false.lift() else true.lift()
-
 fun ESEffect.isSequential(): Boolean = this is ESReturns || this is ESThrows

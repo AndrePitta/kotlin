@@ -31,7 +31,7 @@ fun schemaForConstant(constant: ESConstant): EffectSchema {
     if (constant is ESBooleanConstant) {
         return boundSchemaFromClauses(
                 createClause(true.lift(), ESReturns(constant)),
-                createClause(false.lift(), ESReturns(constant.negate()))
+                createClause(false.lift(), ESReturns(constant.negated()))
         )
     }
 

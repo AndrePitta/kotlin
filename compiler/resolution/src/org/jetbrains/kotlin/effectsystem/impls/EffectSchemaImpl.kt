@@ -27,6 +27,9 @@ import org.jetbrains.kotlin.effectsystem.visitors.Substitutor
 
 class EffectSchemaImpl(override val clauses: List<ESClause>, val parameters: List<ESVariable>) : EffectSchema {
     override fun apply(arguments: List<EffectSchema>): EffectSchema? {
+        assert(arguments.size == parameters.size) {
+            "Arguments and parameters count mismatch: arguments count is ${arguments.size} but parameters count is ${parameters.size}"
+        }
         // Effect Schema as functor can contain only pretty trivial operators (see ESOperator), which all work only
         // with sequential effects. All other effects transparently lift through application.
 
