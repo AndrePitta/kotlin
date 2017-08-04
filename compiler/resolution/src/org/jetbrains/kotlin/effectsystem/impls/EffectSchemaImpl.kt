@@ -18,10 +18,11 @@ package org.jetbrains.kotlin.effectsystem.impls
 
 import org.jetbrains.kotlin.effectsystem.effects.ESReturns
 import org.jetbrains.kotlin.effectsystem.effects.ESThrows
-import org.jetbrains.kotlin.effectsystem.factories.ClausesFactory
-import org.jetbrains.kotlin.effectsystem.factories.EffectSchemasFactory
+import org.jetbrains.kotlin.effectsystem.factories.boundSchemaFromClauses
+import org.jetbrains.kotlin.effectsystem.factories.createClause
 import org.jetbrains.kotlin.effectsystem.factories.lift
-import org.jetbrains.kotlin.effectsystem.structure.*
+import org.jetbrains.kotlin.effectsystem.structure.ESClause
+import org.jetbrains.kotlin.effectsystem.structure.EffectSchema
 import org.jetbrains.kotlin.effectsystem.visitors.Substitutor
 
 class EffectSchemaImpl(override val clauses: List<ESClause>, val parameters: List<ESVariable>) : EffectSchema {
@@ -37,7 +38,7 @@ class EffectSchemaImpl(override val clauses: List<ESClause>, val parameters: Lis
         // Here we transform arguments so that they contain only relevant clauses (i.e. those that end with sequential effect)
         // Those clauses should be combined properly using schema's structure
         val filteredArgs = arguments.map { schema ->
-            EffectSchemasFactory.clauses(schema.clauses.filter { it.effect.isSequential() }, listOf())
+            boundSchemaFromClauses(schema.clauses.filter { it.effect.isSequential() })
         }
         val substs = parameters.zip(filteredArgs).toMap()
 
@@ -49,10 +50,10 @@ class EffectSchemaImpl(override val clauses: List<ESClause>, val parameters: Lis
             for (substitutedClause in substitutedPremise.clauses) {
                 if (substitutedClause.effect is ESThrows) combinedClauses += substitutedClause
 
-                if (substitutedClause.effect == ESReturns(true.lift())) combinedClauses += ClausesFactory.create(substitutedClause.condition, clause.effect)
+                if (substitutedClause.effect == ESReturns(true.lift())) combinedClauses += createClause(substitutedClause.condition, clause.effect)
             }
         }
 
-        return EffectSchemasFactory.clauses(irrelevantClauses + combinedClauses, listOf())
+        return boundSchemaFromClauses(irrelevantClauses + combinedClauses)
     }
 }

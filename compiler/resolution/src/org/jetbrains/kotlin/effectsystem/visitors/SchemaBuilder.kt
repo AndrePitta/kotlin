@@ -17,14 +17,15 @@
 package org.jetbrains.kotlin.effectsystem.visitors
 
 import org.jetbrains.kotlin.builtins.DefaultBuiltIns
+import org.jetbrains.kotlin.effectsystem.factories.createConstant
 import org.jetbrains.kotlin.effectsystem.impls.*
 import org.jetbrains.kotlin.effectsystem.structure.EffectSchema
 import org.jetbrains.kotlin.effectsystem.structure.calltree.CTCall
 import org.jetbrains.kotlin.effectsystem.structure.calltree.CTConstant
 import org.jetbrains.kotlin.effectsystem.structure.calltree.CTLambda
 import org.jetbrains.kotlin.effectsystem.structure.calltree.CTVariable
-import org.jetbrains.kotlin.effectsystem.factories.EffectSchemasFactory
-import org.jetbrains.kotlin.effectsystem.factories.ValuesFactory
+import org.jetbrains.kotlin.effectsystem.factories.pureSchema
+import org.jetbrains.kotlin.effectsystem.factories.schemaForConstant
 import org.jetbrains.kotlin.effectsystem.structure.calltree.CallTreeVisitor
 
 /**
@@ -37,17 +38,19 @@ class SchemaBuilder : CallTreeVisitor<EffectSchema?> {
     }
 
     override fun visitConstant(ctConstant: CTConstant): EffectSchema =
-            EffectSchemasFactory.schemaForConstant(ValuesFactory.createConstant(ctConstant.id, ctConstant.value, ctConstant.type))
+            schemaForConstant(createConstant(ctConstant.id, ctConstant.value, ctConstant.type))
 
-    override fun visitVariable(ctVariable: CTVariable) =
-            EffectSchemasFactory.pureReturns(
-                    if (ctVariable.type == DefaultBuiltIns.Instance.booleanType) {
-                        ESBooleanVariable(ctVariable.id)
-                    } else {
-                        ESVariable(ctVariable.id, ctVariable.type)
-                    }
-            )
+    override fun visitVariable(ctVariable: CTVariable): EffectSchema {
+        val variable = if (ctVariable.type == DefaultBuiltIns.Instance.booleanType) {
+            ESBooleanVariable(ctVariable.id)
+        }
+        else {
+            ESVariable(ctVariable.id, ctVariable.type)
+        }
+
+        return pureSchema(variable)
+    }
 
     override fun visitLambda(ctLambda: CTLambda): EffectSchema =
-            EffectSchemasFactory.pureReturns(ESLambda(ctLambda.id, ctLambda.type, ctLambda.lambdaFunctor))
+            pureSchema(ESLambda(ctLambda.id, ctLambda.type, ctLambda.lambdaFunctor))
 }

@@ -18,9 +18,8 @@ package org.jetbrains.kotlin.effectsystem.functors
 
 import org.jetbrains.kotlin.effectsystem.effects.ESCalls
 import org.jetbrains.kotlin.effectsystem.effects.ESReturns
-import org.jetbrains.kotlin.effectsystem.effects.ESThrows
+import org.jetbrains.kotlin.effectsystem.factories.boundSchemaFromClauses
 import org.jetbrains.kotlin.effectsystem.impls.ESVariable
-import org.jetbrains.kotlin.effectsystem.factories.EffectSchemasFactory
 import org.jetbrains.kotlin.effectsystem.structure.*
 
 class InPlaceCallFunctor(val invocationCount: ESCalls.InvocationCount, private val relevantParametersMask: List<Boolean>) : ESFunctor {
@@ -32,7 +31,7 @@ class InPlaceCallFunctor(val invocationCount: ESCalls.InvocationCount, private v
         // Filter input arguments using mask
         val callableProvider = arguments.zip(relevantParametersMask).single { it.second }.first
 
-        return EffectSchemasFactory.clauses(callableProvider.clauses.map { clause ->
+        return boundSchemaFromClauses(callableProvider.clauses.map { clause ->
             val outcome = clause.effect as? ESReturns ?: return@map clause
 
             // If cast fails, it means that something is wrong with types
@@ -40,6 +39,6 @@ class InPlaceCallFunctor(val invocationCount: ESCalls.InvocationCount, private v
 
             val newEffect = ESCalls(variable, invocationCount)
             return@map clause.replaceEffect(newEffect)
-        }, listOf())
+        })
     }
 }

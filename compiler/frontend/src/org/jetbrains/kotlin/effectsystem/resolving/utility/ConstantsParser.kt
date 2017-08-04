@@ -16,7 +16,8 @@
 
 package org.jetbrains.kotlin.effectsystem.resolving.utility
 
-import org.jetbrains.kotlin.effectsystem.factories.ValuesFactory
+import org.jetbrains.kotlin.effectsystem.factories.NOT_NULL_CONSTANT
+import org.jetbrains.kotlin.effectsystem.factories.UNKNOWN_CONSTANT
 import org.jetbrains.kotlin.effectsystem.factories.lift
 import org.jetbrains.kotlin.effectsystem.impls.ESConstant
 import org.jetbrains.kotlin.effectsystem.resolving.EffectsConstantValues
@@ -30,8 +31,8 @@ class ConstantsParser {
                 EffectsConstantValues.TRUE -> true.lift()
                 EffectsConstantValues.FALSE -> false.lift()
                 EffectsConstantValues.NULL -> null.lift()
-                EffectsConstantValues.NOT_NULL -> ValuesFactory.NOT_NULL_CONSTANT
-                EffectsConstantValues.UNKNOWN -> ValuesFactory.UNKNOWN_CONSTANT
+                EffectsConstantValues.NOT_NULL -> NOT_NULL_CONSTANT
+                EffectsConstantValues.UNKNOWN -> UNKNOWN_CONSTANT
                 null -> null
             }
 }

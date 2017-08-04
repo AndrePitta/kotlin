@@ -17,8 +17,8 @@
 package org.jetbrains.kotlin.effectsystem.resolving.parsers
 
 import org.jetbrains.kotlin.effectsystem.effects.ESReturns
-import org.jetbrains.kotlin.effectsystem.factories.EffectSchemasFactory
-import org.jetbrains.kotlin.effectsystem.factories.ValuesFactory
+import org.jetbrains.kotlin.effectsystem.factories.UNKNOWN_CONSTANT
+import org.jetbrains.kotlin.effectsystem.factories.singleClauseSchema
 import org.jetbrains.kotlin.effectsystem.impls.ESVariable
 import org.jetbrains.kotlin.effectsystem.resolving.FunctorParser
 import org.jetbrains.kotlin.effectsystem.resolving.RETURNS_EFFECT
@@ -27,7 +27,6 @@ import org.jetbrains.kotlin.effectsystem.resolving.utility.extensionReceiverToES
 import org.jetbrains.kotlin.effectsystem.resolving.utility.toESConstant
 import org.jetbrains.kotlin.effectsystem.resolving.utility.toESVariable
 import org.jetbrains.kotlin.effectsystem.structure.ESFunctor
-import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 
 class ReturnsFunctorParser : FunctorParser {
@@ -35,9 +34,9 @@ class ReturnsFunctorParser : FunctorParser {
         val condition = UtilityParsers.conditionParser.parseCondition(resolvedCall) ?: return null
 
         val returnsAnnotation = resolvedCall.resultingDescriptor.annotations.findAnnotation(RETURNS_EFFECT) ?: return null
-        val returnsArg = returnsAnnotation.allValueArguments.values.singleOrNull()?.toESConstant() ?: ValuesFactory.UNKNOWN_CONSTANT
+        val returnsArg = returnsAnnotation.allValueArguments.values.singleOrNull()?.toESConstant() ?: UNKNOWN_CONSTANT
 
-        return EffectSchemasFactory.singleClause(condition, ESReturns(returnsArg), getParameters(resolvedCall))
+        return singleClauseSchema(condition, ESReturns(returnsArg), getParameters(resolvedCall))
     }
 
     private fun getParameters(resolvedCall: ResolvedCall<*>): List<ESVariable> {

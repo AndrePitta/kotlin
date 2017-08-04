@@ -16,11 +16,10 @@
 
 package org.jetbrains.kotlin.effectsystem.visitors
 
-import org.jetbrains.kotlin.effectsystem.impls.*
-import org.jetbrains.kotlin.effectsystem.factories.EffectSchemasFactory
+import org.jetbrains.kotlin.effectsystem.factories.boundSchemaFromClauses
 import org.jetbrains.kotlin.effectsystem.factories.lift
+import org.jetbrains.kotlin.effectsystem.impls.*
 import org.jetbrains.kotlin.effectsystem.structure.*
-import org.jetbrains.kotlin.effectsystem.structure.ESExpressionVisitor
 import org.jetbrains.kotlin.types.typeUtil.isSubtypeOf
 
 /**
@@ -29,12 +28,9 @@ import org.jetbrains.kotlin.types.typeUtil.isSubtypeOf
  */
 class Reducer : ESExpressionVisitor<ESExpression?> {
     fun reduceSchema(schema: EffectSchema): EffectSchema =
-            EffectSchemasFactory.clauses(
-                    schema.clauses.mapNotNull { reduceClause(it) },
-                    listOf()
-            )
+            boundSchemaFromClauses(schema.clauses.mapNotNull { reduceClause(it) })
 
-    fun reduceClause(clause: org.jetbrains.kotlin.effectsystem.structure.ESClause): org.jetbrains.kotlin.effectsystem.structure.ESClause? {
+    private fun reduceClause(clause: org.jetbrains.kotlin.effectsystem.structure.ESClause): org.jetbrains.kotlin.effectsystem.structure.ESClause? {
         val reducedPremise = clause.condition.accept(this) as ESBooleanExpression
 
         // Filter never executed premises

@@ -17,10 +17,10 @@
 package org.jetbrains.kotlin.effectsystem.functors
 
 import org.jetbrains.kotlin.effectsystem.effects.ESReturns
-import org.jetbrains.kotlin.effectsystem.factories.ClausesFactory
+import org.jetbrains.kotlin.effectsystem.factories.createClause
+import org.jetbrains.kotlin.effectsystem.factories.lift
 import org.jetbrains.kotlin.effectsystem.impls.ESIs
 import org.jetbrains.kotlin.effectsystem.impls.and
-import org.jetbrains.kotlin.effectsystem.factories.lift
 import org.jetbrains.kotlin.effectsystem.structure.ESClause
 import org.jetbrains.kotlin.types.KotlinType
 
@@ -30,8 +30,8 @@ class IsFunctor(val type: KotlinType, val isNegated: Boolean) : AbstractSequenti
         val outcome = it.effect as ESReturns
         val premise = it.condition
 
-        val trueResult = ClausesFactory.create(premise.and(ESIs(outcome.value, this)), ESReturns(true.lift()))
-        val falseResult = ClausesFactory.create(premise.and(ESIs(outcome.value, negated())), ESReturns(false.lift()))
+        val trueResult = createClause(premise.and(ESIs(outcome.value, this)), ESReturns(true.lift()))
+        val falseResult = createClause(premise.and(ESIs(outcome.value, negated())), ESReturns(false.lift()))
         return listOf(trueResult, falseResult)
     }
 

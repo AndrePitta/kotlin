@@ -22,30 +22,34 @@ import org.jetbrains.kotlin.effectsystem.impls.ESConstant
 import org.jetbrains.kotlin.effectsystem.structure.*
 import org.jetbrains.kotlin.types.KotlinType
 
-fun Boolean.lift(): ESBooleanConstant = ESBooleanConstant(ConstantID(this), this)
+fun Boolean.lift(): ESBooleanConstant = if (this) TRUE_CONSTANT else FALSE_CONSTANT
 
-fun ESBooleanConstant.negate(): ESBooleanConstant = ESBooleanConstant(ConstantID(this.value.not()), this.value.not())
+fun ESBooleanConstant.negate(): ESBooleanConstant = if (this.value) FALSE_CONSTANT else TRUE_CONSTANT
 
-fun Nothing?.lift(): ESConstant = ESConstant(ConstantID(this), this, DefaultBuiltIns.Instance.nullableNothingType)
+fun Nothing?.lift(): ESConstant = NULL_CONSTANT
 
-object ValuesFactory {
-    fun createConstant(id: ESValueID, value: Any?, type: KotlinType): ESConstant {
-        return if (type == DefaultBuiltIns.Instance.booleanType) {
-            ESBooleanConstant(id, value as Boolean)
-        } else {
-            ESConstant(id, value, type)
-        }
+fun createConstant(id: ESValueID, value: Any?, type: KotlinType): ESConstant {
+    return if (type == DefaultBuiltIns.Instance.booleanType) {
+        ESBooleanConstant(id, value as Boolean)
     }
-
-    val NOT_NULL_CONSTANT = ESConstant(
-            id = NOT_NULL_ID,
-            value = object {},
-            type = DefaultBuiltIns.Instance.anyType)
-
-
-    val UNKNOWN_CONSTANT = ESConstant(
-            id = UNKNOWN_ID,
-            value = object {},
-            type = DefaultBuiltIns.Instance.nullableAnyType
-    )
+    else {
+        ESConstant(id, value, type)
+    }
 }
+
+val NOT_NULL_CONSTANT = ESConstant(
+        id = NOT_NULL_ID,
+        value = object {},
+        type = DefaultBuiltIns.Instance.anyType)
+
+
+val UNKNOWN_CONSTANT = ESConstant(
+        id = UNKNOWN_ID,
+        value = object {},
+        type = DefaultBuiltIns.Instance.nullableAnyType
+)
+
+val TRUE_CONSTANT = ESBooleanConstant(ConstantID(true), true)
+val FALSE_CONSTANT = ESBooleanConstant(ConstantID(false), false)
+
+val NULL_CONSTANT = ESConstant(ConstantID(null), null, DefaultBuiltIns.Instance.nullableNothingType)

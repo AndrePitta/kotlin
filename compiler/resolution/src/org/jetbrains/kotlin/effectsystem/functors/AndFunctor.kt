@@ -17,7 +17,7 @@
 package org.jetbrains.kotlin.effectsystem.functors
 
 import org.jetbrains.kotlin.effectsystem.effects.ESReturns
-import org.jetbrains.kotlin.effectsystem.factories.ClausesFactory
+import org.jetbrains.kotlin.effectsystem.factories.createClause
 import org.jetbrains.kotlin.effectsystem.factories.lift
 import org.jetbrains.kotlin.effectsystem.impls.and
 import org.jetbrains.kotlin.effectsystem.impls.or
@@ -49,11 +49,11 @@ class AndFunctor : AbstractSequentialBinaryFunctor() {
         val result = mutableListOf<ESClause>()
 
         if (conditionWhenTrue != null) {
-            result.add(ClausesFactory.create(conditionWhenTrue, ESReturns(true.lift())))
+            result.add(createClause(conditionWhenTrue, ESReturns(true.lift())))
         }
 
         if (conditionWhenFalse != null) {
-            result.add(ClausesFactory.create(conditionWhenFalse, ESReturns(false.lift())))
+            result.add(createClause(conditionWhenFalse, ESReturns(false.lift())))
         }
 
         return result

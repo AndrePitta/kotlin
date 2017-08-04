@@ -18,9 +18,8 @@ package org.jetbrains.kotlin.effectsystem.adapters
 
 import org.jetbrains.kotlin.builtins.DefaultBuiltIns
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
-import org.jetbrains.kotlin.effectsystem.factories.ValuesFactory
+import org.jetbrains.kotlin.effectsystem.factories.createConstant
 import org.jetbrains.kotlin.effectsystem.functors.*
-import org.jetbrains.kotlin.effectsystem.impls.ESConstant
 import org.jetbrains.kotlin.effectsystem.resolving.FunctorResolver
 import org.jetbrains.kotlin.effectsystem.structure.ESFunctor
 import org.jetbrains.kotlin.effectsystem.structure.EffectSchema
@@ -33,7 +32,6 @@ import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
 import org.jetbrains.kotlin.resolve.calls.model.ExpressionValueArgument
 import org.jetbrains.kotlin.resolve.calls.smartcasts.DataFlowValue
 import org.jetbrains.kotlin.resolve.calls.smartcasts.DataFlowValueFactory
-import org.jetbrains.kotlin.resolve.constants.CompileTimeConstant
 import org.jetbrains.kotlin.resolve.constants.TypedCompileTimeConstant
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.utils.ifEmpty
@@ -113,11 +111,11 @@ class CallTreeBuilder(
         val functor = when (expression.operationToken) {
             KtTokens.EQEQ, KtTokens.EQEQEQ -> {
                 rightNode as? CTConstant ?: return UNKNOWN_CALL
-                return CTCall(EqualsToBinaryConstantFunctor(false, ValuesFactory.createConstant(rightNode.id, rightNode.value, rightNode.type)), listOf(leftNode))
+                return CTCall(EqualsToBinaryConstantFunctor(false, createConstant(rightNode.id, rightNode.value, rightNode.type)), listOf(leftNode))
             }
             KtTokens.EXCLEQ, KtTokens.EXCLEQEQEQ -> {
                 rightNode as? CTConstant ?: return UNKNOWN_CALL
-                return CTCall(EqualsToBinaryConstantFunctor(true, ValuesFactory.createConstant(rightNode.id, rightNode.value, rightNode.type)), listOf(leftNode))
+                return CTCall(EqualsToBinaryConstantFunctor(true, createConstant(rightNode.id, rightNode.value, rightNode.type)), listOf(leftNode))
             }
             KtTokens.ANDAND -> AndFunctor()
             KtTokens.OROR -> OrFunctor()

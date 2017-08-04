@@ -21,7 +21,7 @@ import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.effectsystem.structure.ESEffect
 import org.jetbrains.kotlin.effectsystem.structure.EffectSchema
 import org.jetbrains.kotlin.effectsystem.effects.ESReturns
-import org.jetbrains.kotlin.effectsystem.factories.ValuesFactory
+import org.jetbrains.kotlin.effectsystem.factories.UNKNOWN_CONSTANT
 import org.jetbrains.kotlin.effectsystem.factories.lift
 import org.jetbrains.kotlin.effectsystem.resolving.FunctorResolver
 import org.jetbrains.kotlin.effectsystem.visitors.Reducer
@@ -46,7 +46,7 @@ class EffectSystem {
         val callExpression = resolvedCall.call.callElement as? KtCallExpression ?: return DataFlowInfo.EMPTY
         // Prevent launch of effect system machinery on pointless cases (constants/enums/constructors/etc.)
         if (callExpression is KtDeclaration) return DataFlowInfo.EMPTY
-        return getDataFlowInfoWhen(ESReturns(ValuesFactory.UNKNOWN_CONSTANT), callExpression,
+        return getDataFlowInfoWhen(ESReturns(UNKNOWN_CONSTANT), callExpression,
                                    bindingTrace, languageVersionSettings, moduleDescriptor)
     }
 

@@ -17,7 +17,7 @@
 package org.jetbrains.kotlin.effectsystem.functors
 
 import org.jetbrains.kotlin.effectsystem.effects.ESReturns
-import org.jetbrains.kotlin.effectsystem.factories.EffectSchemasFactory
+import org.jetbrains.kotlin.effectsystem.factories.boundSchemaFromClauses
 import org.jetbrains.kotlin.effectsystem.structure.ESClause
 import org.jetbrains.kotlin.effectsystem.structure.ESFunctor
 import org.jetbrains.kotlin.effectsystem.structure.EffectSchema
@@ -42,7 +42,7 @@ abstract class AbstractSequentialBinaryFunctor : ESFunctor {
         // Traces that evaluated both arguments and went to the functor
         val evaluatedByFunctor = combineClauses(leftReturning, rightReturning)
 
-        return EffectSchemasFactory.clauses(leftRest + rightRest + evaluatedByFunctor, listOf())
+        return boundSchemaFromClauses(leftRest + rightRest + evaluatedByFunctor)
     }
 
     abstract fun combineClauses(left: List<ESClause>, right: List<ESClause>): List<ESClause>

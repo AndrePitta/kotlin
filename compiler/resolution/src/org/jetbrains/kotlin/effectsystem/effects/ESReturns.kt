@@ -16,7 +16,7 @@
 
 package org.jetbrains.kotlin.effectsystem.effects
 
-import org.jetbrains.kotlin.effectsystem.factories.ValuesFactory
+import org.jetbrains.kotlin.effectsystem.factories.UNKNOWN_CONSTANT
 import org.jetbrains.kotlin.effectsystem.structure.ESEffect
 import org.jetbrains.kotlin.effectsystem.structure.ESValue
 import org.jetbrains.kotlin.effectsystem.impls.ESConstant
@@ -29,7 +29,7 @@ data class ESReturns(val value: ESValue): ESEffect {
         if (other !is ESReturns) return null
 
         // ESReturns(x) implies ESReturns(?) for any 'x'
-        if (other.value == ValuesFactory.UNKNOWN_CONSTANT) return true
+        if (other.value == UNKNOWN_CONSTANT) return true
 
         if (value is ESVariable || other.value is ESVariable) {
             // If at least one of values is Variable, then `this` definitely

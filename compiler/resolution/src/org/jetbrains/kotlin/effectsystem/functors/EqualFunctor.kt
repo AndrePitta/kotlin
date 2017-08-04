@@ -17,8 +17,8 @@
 package org.jetbrains.kotlin.effectsystem.functors
 
 import org.jetbrains.kotlin.effectsystem.effects.ESReturns
-import org.jetbrains.kotlin.effectsystem.factories.ClausesFactory
-import org.jetbrains.kotlin.effectsystem.factories.ValuesFactory
+import org.jetbrains.kotlin.effectsystem.factories.UNKNOWN_CONSTANT
+import org.jetbrains.kotlin.effectsystem.factories.createClause
 import org.jetbrains.kotlin.effectsystem.factories.lift
 import org.jetbrains.kotlin.effectsystem.impls.ESConstant
 import org.jetbrains.kotlin.effectsystem.impls.ESEqual
@@ -31,14 +31,14 @@ class EqualsToBinaryConstantFunctor(val isNegated: Boolean, val constant: ESCons
         // Corner-case when left is variable
         if (list.size == 1 && list.single().effect.safeAs<ESReturns>()?.value is ESVariable) {
             val variable = (list.single().effect as ESReturns).value as ESVariable
-            return listOf(ClausesFactory.create(ESEqual(variable, constant, isNegated), ESReturns(true.lift())))
+            return listOf(createClause(ESEqual(variable, constant, isNegated), ESReturns(true.lift())))
         }
 
         /**
          * Here we implicitly use the fact that constant is binary (i.e. has exactly two values),
          * so all 'notEqual'-clauses (if any) are the only clauses that can produce false
          */
-        val (equal, notEqual) = list.partition { it.effect == ESReturns(constant) || (it.effect as ESReturns).value == ValuesFactory.UNKNOWN_CONSTANT }
+        val (equal, notEqual) = list.partition { it.effect == ESReturns(constant) || (it.effect as ESReturns).value == UNKNOWN_CONSTANT }
 
         val whenArgReturnsSameConstant = foldConditionsWithOr(equal)
         val whenArgReturnsOtherConstant = foldConditionsWithOr(notEqual)
@@ -47,12 +47,12 @@ class EqualsToBinaryConstantFunctor(val isNegated: Boolean, val constant: ESCons
 
         if (whenArgReturnsSameConstant != null) {
             val returnValue = isNegated.not().lift() // true when not negated, false otherwise
-            result.add(ClausesFactory.create(whenArgReturnsSameConstant, ESReturns(returnValue)))
+            result.add(createClause(whenArgReturnsSameConstant, ESReturns(returnValue)))
         }
 
         if (whenArgReturnsOtherConstant != null) {
             val returnValue = isNegated.lift()       // false when not negated, true otherwise
-            result.add(ClausesFactory.create(whenArgReturnsOtherConstant, ESReturns(returnValue)))
+            result.add(createClause(whenArgReturnsOtherConstant, ESReturns(returnValue)))
         }
 
         return result

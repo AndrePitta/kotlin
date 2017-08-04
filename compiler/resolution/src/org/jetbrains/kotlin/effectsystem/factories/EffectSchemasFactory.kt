@@ -23,46 +23,40 @@ import org.jetbrains.kotlin.effectsystem.impls.ESVariable
 import org.jetbrains.kotlin.effectsystem.impls.EffectSchemaImpl
 import org.jetbrains.kotlin.effectsystem.structure.*
 
-object EffectSchemasFactory {
-    /**
-     * Creates more specific schemas for some particular cases (e.g. explicitly specifying
-     * that schema for 'false' never returns 'true', etc.)
-     */
-    fun schemaForConstant(constant: ESConstant): EffectSchema {
-        if (constant is ESBooleanConstant) {
-            return clauses(
-                    listOf(
-                            ClausesFactory.create(true.lift(), ESReturns(constant)),
-                            ClausesFactory.create(false.lift(), ESReturns(constant.negate()))
-                    ),
-                    listOf()
-            )
-        }
-
-        if (constant == null.lift()) {
-            return clauses(
-                    listOf(
-                            ClausesFactory.create(true.lift(), ESReturns(constant)),
-                            ClausesFactory.create(false.lift(), ESReturns(ValuesFactory.NOT_NULL_CONSTANT))
-                    ),
-                    listOf()
-            )
-        }
-
-        if (constant == ValuesFactory.NOT_NULL_CONSTANT) {
-            return clauses(
-                    listOf(
-                            ClausesFactory.create(true.lift(), ESReturns(constant)),
-                            ClausesFactory.create(false.lift(), ESReturns(null.lift()))
-                    ),
-                    listOf()
-            )
-        }
-
-        return pureReturns(constant)
+/**
+ * Creates more specific schemas for some particular cases (e.g. explicitly specifying
+ * that schema for 'false' never returns 'true', etc.)
+ */
+fun schemaForConstant(constant: ESConstant): EffectSchema {
+    if (constant is ESBooleanConstant) {
+        return boundSchemaFromClauses(
+                createClause(true.lift(), ESReturns(constant)),
+                createClause(false.lift(), ESReturns(constant.negate()))
+        )
     }
 
-    fun pureReturns(value: ESValue): EffectSchema = clauses(listOf(ClausesFactory.always(ESReturns(value))), listOf())
-    fun singleClause(premise: ESBooleanExpression, effect: ESEffect, variables: List<ESVariable>) = clauses(listOf(ClausesFactory.create(premise, effect)), variables)
-    fun clauses(clauses: List<ESClause>, params: List<ESVariable>): EffectSchema = EffectSchemaImpl(clauses, params)
+    if (constant == null.lift()) {
+        return boundSchemaFromClauses(
+                createClause(true.lift(), ESReturns(constant)),
+                createClause(false.lift(), ESReturns(NOT_NULL_CONSTANT))
+        )
+    }
+
+    if (constant == NOT_NULL_CONSTANT) {
+        return boundSchemaFromClauses(
+                createClause(true.lift(), ESReturns(constant)),
+                createClause(false.lift(), ESReturns(null.lift()))
+        )
+    }
+
+    return pureSchema(constant)
 }
+
+fun pureSchema(value: ESValue): EffectSchema = boundSchemaFromClauses(createUnconditionalClause(ESReturns(value)))
+
+fun singleClauseSchema(premise: ESBooleanExpression, effect: ESEffect, variables: List<ESVariable>) = schemaFromClauses(listOf(createClause(premise, effect)), variables)
+
+fun schemaFromClauses(clauses: List<ESClause>, params: List<ESVariable>): EffectSchema = EffectSchemaImpl(clauses, params)
+
+fun boundSchemaFromClauses(vararg clauses: ESClause): EffectSchema = schemaFromClauses(clauses.asList(), listOf())
+fun boundSchemaFromClauses(clauses: List<ESClause>): EffectSchema = schemaFromClauses(clauses, listOf())

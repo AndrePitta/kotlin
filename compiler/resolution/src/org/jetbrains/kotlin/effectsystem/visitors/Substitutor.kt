@@ -16,9 +16,9 @@
 
 package org.jetbrains.kotlin.effectsystem.visitors
 
+import org.jetbrains.kotlin.effectsystem.factories.pureSchema
 import org.jetbrains.kotlin.effectsystem.impls.*
 import org.jetbrains.kotlin.effectsystem.structure.EffectSchema
-import org.jetbrains.kotlin.effectsystem.factories.EffectSchemasFactory
 import org.jetbrains.kotlin.effectsystem.structure.ESExpressionVisitor
 
 /**
@@ -55,9 +55,9 @@ class Substitutor(private val substitutions: Map<ESVariable, EffectSchema>) : ES
     }
 
     override fun visitVariable(esVariable: ESVariable): EffectSchema?
-            = substitutions[esVariable] ?: EffectSchemasFactory.pureReturns(esVariable)
+            = substitutions[esVariable] ?: pureSchema(esVariable)
 
-    override fun visitConstant(esConstant: ESConstant): EffectSchema? = EffectSchemasFactory.pureReturns(esConstant)
+    override fun visitConstant(esConstant: ESConstant): EffectSchema? = pureSchema(esConstant)
 
     override fun visitLambda(esLambda: ESLambda): EffectSchema? = visitVariable(esLambda)
 }

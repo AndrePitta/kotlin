@@ -20,7 +20,5 @@ import org.jetbrains.kotlin.effectsystem.structure.ESBooleanExpression
 import org.jetbrains.kotlin.effectsystem.structure.ESClause
 import org.jetbrains.kotlin.effectsystem.structure.ESEffect
 
-object ClausesFactory {
-    fun always(effect: ESEffect): ESClause = ESClause(true.lift(), effect)
-    fun create(premise: ESBooleanExpression, conclusion: ESEffect) = ESClause(premise, conclusion)
-}
+fun createClause(premise: ESBooleanExpression, conclusion: ESEffect) = ESClause(premise, conclusion)
+fun createUnconditionalClause(effect: ESEffect): ESClause = ESClause(true.lift(), effect)
