@@ -27,10 +27,7 @@ import org.jetbrains.kotlin.cfg.pseudocode.instructions.eval.MergeInstruction
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.jumps.AbstractJumpInstruction
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.jumps.ConditionalJumpInstruction
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.jumps.NondeterministicJumpInstruction
-import org.jetbrains.kotlin.cfg.pseudocode.instructions.special.LocalFunctionDeclarationInstruction
-import org.jetbrains.kotlin.cfg.pseudocode.instructions.special.SubroutineEnterInstruction
-import org.jetbrains.kotlin.cfg.pseudocode.instructions.special.SubroutineExitInstruction
-import org.jetbrains.kotlin.cfg.pseudocode.instructions.special.SubroutineSinkInstruction
+import org.jetbrains.kotlin.cfg.pseudocode.instructions.special.*
 import org.jetbrains.kotlin.cfg.pseudocodeTraverser.TraversalOrder.BACKWARD
 import org.jetbrains.kotlin.cfg.pseudocodeTraverser.TraversalOrder.FORWARD
 import org.jetbrains.kotlin.cfg.pseudocodeTraverser.TraverseInstructionResult
@@ -54,6 +51,10 @@ class PseudocodeImpl(override val correspondingElement: KtElement) : Pseudocode 
 
     override val localDeclarations: Set<LocalFunctionDeclarationInstruction> by lazy {
         getLocalDeclarations(this)
+    }
+
+    override val localInlinedDeclarations: Set<InlinedDeclarationInstruction> by lazy {
+        getInlinedDeclarations(this)
     }
 
     private val representativeInstructions = HashMap<KtElement, KtElementInstruction>()
@@ -84,8 +85,27 @@ class PseudocodeImpl(override val correspondingElement: KtElement) : Pseudocode 
                 localDeclarations.add(instruction)
                 localDeclarations.addAll(getLocalDeclarations(instruction.body))
             }
+
+            if (instruction is InlinedDeclarationInstruction) {
+                localDeclarations.addAll(getLocalDeclarations(instruction.body))
+            }
         }
         return localDeclarations
+    }
+
+    private fun getInlinedDeclarations(pseudocode: Pseudocode): Set<InlinedDeclarationInstruction> {
+        val inlinedDeclarations = linkedSetOf<InlinedDeclarationInstruction>()
+        for (instruction in (pseudocode as PseudocodeImpl).mutableInstructionList) {
+            if (instruction is LocalFunctionDeclarationInstruction) {
+                inlinedDeclarations.addAll(getInlinedDeclarations(instruction.body))
+            }
+
+            if (instruction is InlinedDeclarationInstruction) {
+                inlinedDeclarations.add(instruction)
+                inlinedDeclarations.addAll(getInlinedDeclarations(instruction.body))
+            }
+        }
+        return inlinedDeclarations
     }
 
     val rootPseudocode: Pseudocode
@@ -233,6 +253,10 @@ class PseudocodeImpl(override val correspondingElement: KtElement) : Pseudocode 
         for (localFunctionDeclarationInstruction in localDeclarations) {
             (localFunctionDeclarationInstruction.body as PseudocodeImpl).collectAndCacheReachableInstructions()
         }
+
+        for (localInlinedDeclarationInstruction in localInlinedDeclarations) {
+            (localInlinedDeclarationInstruction.body as PseudocodeImpl).collectAndCacheReachableInstructions()
+        }
     }
 
     private fun collectAndCacheReachableInstructions() {
@@ -284,6 +308,13 @@ class PseudocodeImpl(override val correspondingElement: KtElement) : Pseudocode 
                 instruction.next = sinkInstruction
             }
 
+            override fun visitInlinedDeclarationInstruction(instruction: InlinedDeclarationInstruction) {
+                val body = instruction.body as PseudocodeImpl
+                body.parent = this@PseudocodeImpl
+                body.postProcess()
+                instruction.next = getNextPosition(currentPosition)
+            }
+
             override fun visitSubroutineExit(instruction: SubroutineExitInstruction) {
                 // Nothing
             }
@@ -307,15 +338,15 @@ class PseudocodeImpl(override val correspondingElement: KtElement) : Pseudocode 
             }
             TraverseInstructionResult.CONTINUE
         }
-        if (!visited.contains(exitInstruction)) {
-            visited.add(exitInstruction)
-        }
-        if (!visited.contains(errorInstruction)) {
-            visited.add(errorInstruction)
-        }
-        if (!visited.contains(sinkInstruction)) {
-            visited.add(sinkInstruction)
-        }
+//        if (!visited.contains(exitInstruction)) {
+//            visited.add(exitInstruction)
+//        }
+//        if (!visited.contains(errorInstruction)) {
+//            visited.add(errorInstruction)
+//        }
+//        if (!visited.contains(sinkInstruction)) {
+//            visited.add(sinkInstruction)
+//        }
         return visited
     }
 
