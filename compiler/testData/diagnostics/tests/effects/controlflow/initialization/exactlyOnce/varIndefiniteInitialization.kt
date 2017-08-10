@@ -22,11 +22,11 @@ fun nonAnonymousLambdas() {
 }
 
 fun branchingIndetermineFlow(a: Any) {
-    val x: Int
+    var x: Int
 
     if (a is String) {
         repeat(<!DEBUG_INFO_SMARTCAST!>a<!>.length) {
-            myRun { <!CAPTURED_VAL_INITIALIZATION!>x<!> = 42 }
+            myRun { x = 42 }
         }
     } else {
         myRun { x = 43 }

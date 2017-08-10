@@ -10,8 +10,8 @@ fun branchingIndetermineFlow(a: Any?) {
 
     if (a is String) {
         repeat(<!DEBUG_INFO_SMARTCAST!>a<!>.length) {
-            // TODO: Diagnostic could be better
-            myRun { <!CAPTURED_VAL_INITIALIZATION!>x<!> = 42 }
+            // Val reassignment because we know that repeat's lambda called in-place
+            myRun { <!VAL_REASSIGNMENT!>x<!> = 42 }
         }
     } else {
         myRun { x = 43 }
@@ -30,8 +30,8 @@ fun nonAnonymousLambdas() {
 fun multipleAssignments() {
     val x: Int
     repeat(42) {
-        // TODO: Diagnostic could be better
-        myRun { <!CAPTURED_VAL_INITIALIZATION!>x<!> = 42 }
+        // Val reassignment because we know that repeat's lambda called in-place
+        myRun { <!VAL_REASSIGNMENT!>x<!> = 42 }
     }
     <!UNINITIALIZED_VARIABLE!>x<!>.inc()
 }
@@ -40,6 +40,7 @@ fun funWithUnknownInvocations(block: () -> Unit) = block()
 
 fun nestedIndefiniteAssignment() {
     val x: Int
+    // Captured val initialization reported, because we don't know anything about funWithUnknownInvocations
     funWithUnknownInvocations { myRun { <!CAPTURED_VAL_INITIALIZATION!>x<!> = 42 } }
     <!UNINITIALIZED_VARIABLE!>x<!>.inc()
 }
