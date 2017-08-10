@@ -7467,6 +7467,36 @@ public class DiagnosticsTestGenerated extends AbstractDiagnosticsTest {
                     doTest(fileName);
                 }
 
+                @TestMetadata("compiler/testData/diagnostics/tests/effects/smartcasts/mirror")
+                @TestDataPath("$PROJECT_ROOT")
+                @RunWith(JUnit3RunnerWithInners.class)
+                public static class Mirror extends AbstractDiagnosticsTest {
+                    public void testAllFilesPresentInMirror() throws Exception {
+                        KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/diagnostics/tests/effects/smartcasts/mirror"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.ANY, true);
+                    }
+
+                    @TestMetadata("compiler/testData/diagnostics/tests/effects/smartcasts/mirror/inference")
+                    @TestDataPath("$PROJECT_ROOT")
+                    @RunWith(JUnit3RunnerWithInners.class)
+                    public static class Inference extends AbstractDiagnosticsTest {
+                        public void testAllFilesPresentInInference() throws Exception {
+                            KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/diagnostics/tests/effects/smartcasts/mirror/inference"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.ANY, true);
+                        }
+
+                        @TestMetadata("kt1355.kt")
+                        public void testKt1355() throws Exception {
+                            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/effects/smartcasts/mirror/inference/kt1355.kt");
+                            doTest(fileName);
+                        }
+
+                        @TestMetadata("kt2746.kt")
+                        public void testKt2746() throws Exception {
+                            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/effects/smartcasts/mirror/inference/kt2746.kt");
+                            doTest(fileName);
+                        }
+                    }
+                }
+
                 @TestMetadata("compiler/testData/diagnostics/tests/effects/smartcasts/operatorsTests")
                 @TestDataPath("$PROJECT_ROOT")
                 @RunWith(JUnit3RunnerWithInners.class)
