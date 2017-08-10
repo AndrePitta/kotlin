@@ -7283,6 +7283,12 @@ public class DiagnosticsTestGenerated extends AbstractDiagnosticsTest {
                         doTest(fileName);
                     }
 
+                    @TestMetadata("severalJumpOutsFromInlinedLambda.kt")
+                    public void testSeveralJumpOutsFromInlinedLambda() throws Exception {
+                        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/effects/controlflow/flowInlining/severalJumpOutsFromInlinedLambda.kt");
+                        doTest(fileName);
+                    }
+
                     @TestMetadata("typeMismatch.kt")
                     public void testTypeMismatch() throws Exception {
                         String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/effects/controlflow/flowInlining/typeMismatch.kt");
