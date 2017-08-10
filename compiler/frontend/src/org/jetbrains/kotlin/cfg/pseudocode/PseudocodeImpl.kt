@@ -31,6 +31,7 @@ import org.jetbrains.kotlin.cfg.pseudocode.instructions.special.*
 import org.jetbrains.kotlin.cfg.pseudocodeTraverser.TraversalOrder.BACKWARD
 import org.jetbrains.kotlin.cfg.pseudocodeTraverser.TraversalOrder.FORWARD
 import org.jetbrains.kotlin.cfg.pseudocodeTraverser.TraverseInstructionResult
+import org.jetbrains.kotlin.cfg.pseudocodeTraverser.getLastInstruction
 import org.jetbrains.kotlin.cfg.pseudocodeTraverser.traverseFollowingInstructions
 import org.jetbrains.kotlin.psi.KtElement
 import java.util.*
@@ -226,10 +227,19 @@ class PseudocodeImpl(override val correspondingElement: KtElement) : Pseudocode 
 
         // Collecting reachable instructions should be done after processing all instructions
         // (including instructions in local declarations) to avoid being in incomplete state.
-        collectAndCacheReachableInstructions()
-        for (localFunctionDeclarationInstruction in localDeclarations) {
-            (localFunctionDeclarationInstruction.body as PseudocodeImpl).collectAndCacheReachableInstructions()
+
+        // Also note, that .next()-instruction of InlinedLocalFunctionDeclaration maybe corrected
+        // depending on whether its sink is reachable or not.
+        // We have to remove edge to .next() for inlined declarations which can't reach their sink,
+        // to indicate that flow can't leave this declaration normally)
+        for (declarationInstruction in localDeclarations) {
+            (declarationInstruction.body as PseudocodeImpl).collectAndCacheReachableInstructions()
+            if (declarationInstruction.body.sinkInstruction.dead) {
+                declarationInstruction.next?.removeEdgeFrom(declarationInstruction)
+                declarationInstruction.next = sinkInstruction
+            }
         }
+        collectAndCacheReachableInstructions()
     }
 
     private fun collectAndCacheReachableInstructions() {
@@ -285,7 +295,9 @@ class PseudocodeImpl(override val correspondingElement: KtElement) : Pseudocode 
                 val body = instruction.body as PseudocodeImpl
                 body.parent = this@PseudocodeImpl
                 body.postProcess()
-                // note that inlined declaration leads to next instruction instead of sink
+                // note that inlined declaration leads to next instruction instead of sink. This can be not really
+                // the case if flow can't leave inlined declaration normally (e.g. if it always ends with non-local jumps)
+                // However, we can't decide it yet, because we have to make a reachability analysis first.
                 instruction.next = getNextPosition(currentPosition)
             }
 

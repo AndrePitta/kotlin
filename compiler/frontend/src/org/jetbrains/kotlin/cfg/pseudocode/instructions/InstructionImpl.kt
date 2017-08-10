@@ -60,5 +60,9 @@ abstract class InstructionImpl(override val blockScope: BlockScope): Instruction
         return target
     }
 
+    override fun removeEdgeFrom(previous: Instruction) {
+        previousInstructions.remove(previous)
+    }
+
     override val inputValues: List<PseudoValue> = Collections.emptyList()
 }

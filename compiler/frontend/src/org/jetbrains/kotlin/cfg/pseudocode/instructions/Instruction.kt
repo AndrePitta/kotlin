@@ -25,6 +25,8 @@ interface Instruction {
     val previousInstructions: Collection<Instruction>
     val nextInstructions: Collection<Instruction>
 
+    fun removeEdgeFrom(previous: Instruction)
+
     val dead: Boolean
 
     val blockScope: BlockScope
