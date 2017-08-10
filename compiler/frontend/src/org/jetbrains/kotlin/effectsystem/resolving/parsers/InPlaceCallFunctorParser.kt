@@ -49,16 +49,17 @@ class InPlaceCallFunctorParser : FunctorParser {
 
         assert(argsEffects.size == 1) { "Multi-effect annotations are not supported yet" }
 
-        val invocationCount = argsEffects[0].allValueArguments.values.singleOrNull()?.toInvocationCountEnum() ?: return null
+        val invocationCount = argsEffects[0].allValueArguments.values.singleOrNull().toInvocationCountEnum()
         return InPlaceCallFunctor(invocationCount, isRelevantArg)
     }
 
-    private fun ConstantValue<*>.toInvocationCountEnum(): ESCalls.InvocationCount =
+    private fun ConstantValue<*>?.toInvocationCountEnum(): ESCalls.InvocationCount =
             when (this.safeAs<EnumValue>()?.value?.name?.identifier) {
                 "AT_MOST_ONCE" -> ESCalls.InvocationCount.AT_MOST_ONCE
                 "EXACTLY_ONCE" -> ESCalls.InvocationCount.EXACTLY_ONCE
                 "AT_LEAST_ONCE" -> ESCalls.InvocationCount.AT_LEAST_ONCE
                 "UNKNOWN" -> ESCalls.InvocationCount.UNKNOWN
+                null -> ESCalls.InvocationCount.UNKNOWN
                 else -> throw IllegalStateException("Unknown invocation type enum: $this")
             }
 }
