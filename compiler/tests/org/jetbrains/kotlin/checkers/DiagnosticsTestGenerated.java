@@ -7289,6 +7289,12 @@ public class DiagnosticsTestGenerated extends AbstractDiagnosticsTest {
                         doTest(fileName);
                     }
 
+                    @TestMetadata("tryCatch.kt")
+                    public void testTryCatch() throws Exception {
+                        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/effects/controlflow/flowInlining/tryCatch.kt");
+                        doTest(fileName);
+                    }
+
                     @TestMetadata("typeMismatch.kt")
                     public void testTypeMismatch() throws Exception {
                         String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/effects/controlflow/flowInlining/typeMismatch.kt");
